@@ -7,21 +7,10 @@
 
 using namespace std;
 
-struct date {
-    int year, month, day;
-    date() = default;
-    date(int y, int m, int d) : year(y), month(m), day(d) {}
-};
-
-inline istream& operator>>(istream& in, date& d) {
-    return (in >> d.year >> d.month >> d.day);
-}
-
-inline bool operator<(const date& a, const date& b) {
-    if (a.year != b.year) return a.year < b.year;
-    if (a.month != b.month) return a.month < b.month;
-    return a.day < b.day;
-}
+struct date { int year, month, day; date() = default; date(int y, int m, int d) : year(y), month(m), day(d) {} };
+inline istream &operator>>(istream &is, date &dt) { return (is >> dt.year >> dt.month >> dt.day); }
+inline bool operator<(const date &a, const date &b) { if (a.year != b.year) return a.year < b.year; if (a.month != b.month) return a.month < b.month; return a.day < b.day; }
+inline long long days_from_origin(const date &d) { return 360LL * d.year + 30LL * d.month + d.day; }
 
 class mail : public object {
 protected:
@@ -35,7 +24,7 @@ public:
         : object(_contain_), postmark(_postmark_), send_date(send_d), arrive_date(arrive_d) {}
     virtual ~mail() = default;
 
-    string send_status(int, int, int) override { return "not send"; }
+    string send_status(int, int, int) override { return "mail not send"; }
     string type() override { return "no type"; }
     void print() override {
         object::print();
@@ -63,12 +52,12 @@ public:
     ~air_mail() override = default;
 
     string send_status(int y, int m, int d) override {
-        date ask(y, m, d);
-        if (ask < send_date) return "not send";
-        else if (ask < take_off_date) return "wait in airport";
-        else if (ask < land_date) return "in flight";
-        else if (ask < arrive_date) return "already land";
-        else return "already arrive";
+        date ask_date(y, m, d);
+        if (ask_date < send_date) return "mail not send";
+        if (ask_date < take_off_date) return "wait in airport";
+        if (ask_date < land_date) return "in flight";
+        if (ask_date < arrive_date) return "already land";
+        return "already arrive";
     }
     string type() override { return "air"; }
     void print() override {
@@ -112,20 +101,17 @@ public:
     }
 
     string send_status(int y, int m, int d) override {
-        date ask(y, m, d);
-        if (ask < send_date) return "not send";
-        if (!(ask < arrive_date)) return "already arrive"; // ask >= arrive_date
-        if (len == 0) return "in train";
-        if (ask < station_time[0]) return "in train";
-        for (int i = 0; i < len; ++i) {
-            // at a station time -> in station
-            if (!(station_time[i] < ask) && !(ask < station_time[i])) return "in station";
-            if (i + 1 < len) {
-                if (station_time[i] < ask && ask < station_time[i + 1]) return "in train";
-            } else {
-                if (station_time[i] < ask && ask < arrive_date) return "in train";
-            }
+        date q(y, m, d);
+        if (q < send_date) return "mail not send";
+        if (len == 0) {
+            if (q < arrive_date) return "on the way";
+            return "already arrive";
         }
+        if (q < station_time[0]) return "wait in station";
+        for (int i = 0; i + 1 < len; ++i) {
+            if (q < station_time[i + 1]) return string("between ") + station_name[i] + " and " + station_name[i + 1];
+        }
+        if (q < arrive_date) return string("at ") + station_name[len - 1];
         return "already arrive";
     }
     string type() override { return "train"; }
@@ -167,14 +153,16 @@ public:
     ~car_mail() override = default;
 
     string send_status(int y, int m, int d) override {
-        date ask(y, m, d);
-        if (ask < send_date) return "not send";
-        if (!(ask < arrive_date)) return "already arrive"; // ask >= arrive_date
-        auto to_days = [](const date& dt) { return dt.year * 360 + dt.month * 30 + dt.day; };
-        double elapsed = static_cast<double>(to_days(ask) - to_days(send_date));
-        double total = static_cast<double>(to_days(arrive_date) - to_days(send_date));
-        double current_mile = total > 0.0 ? (elapsed / total) * static_cast<double>(total_mile) : 0.0;
-        return to_string(current_mile);
+        date q(y, m, d);
+        if (q < send_date) return "mail not send";
+        if (q < arrive_date) {
+            double total = (double)(days_from_origin(arrive_date) - days_from_origin(send_date));
+            double used = (double)(days_from_origin(q) - days_from_origin(send_date));
+            if (total < 1e-12) total = 1.0;
+            double current_mile = (used / total) * (double)total_mile;
+            return to_string(current_mile);
+        }
+        return "already arrive";
     }
     string type() override { return "car"; }
     void print() override {
