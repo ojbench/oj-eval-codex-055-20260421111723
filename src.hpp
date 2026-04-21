@@ -64,7 +64,7 @@ public:
 
     string send_status(int y, int m, int d) override {
         date ask(y, m, d);
-        if (ask < send_date) return "mail not send";
+        if (ask < send_date) return "not send";
         else if (ask < take_off_date) return "wait in airport";
         else if (ask < land_date) return "in flight";
         else if (ask < arrive_date) return "already land";
@@ -113,7 +113,7 @@ public:
 
     string send_status(int y, int m, int d) override {
         date ask(y, m, d);
-        if (ask < send_date) return "mail not send";
+        if (ask < send_date) return "not send";
         if (!(ask < arrive_date)) return "already arrive"; // ask >= arrive_date
         if (len == 0) return "in station";
         if (ask < station_time[0]) return "in station";
@@ -168,7 +168,7 @@ public:
 
     string send_status(int y, int m, int d) override {
         date ask(y, m, d);
-        if (ask < send_date) return "mail not send";
+        if (ask < send_date) return "not send";
         if (!(ask < arrive_date)) return "already arrive"; // ask >= arrive_date
         auto to_days = [](const date& dt) { return dt.year * 360 + dt.month * 30 + dt.day; };
         double elapsed = static_cast<double>(to_days(ask) - to_days(send_date));
