@@ -24,7 +24,7 @@ public:
         : object(_contain_), postmark(_postmark_), send_date(send_d), arrive_date(arrive_d) {}
     virtual ~mail() = default;
 
-    string send_status(int, int, int) override { return "mail not send"; }
+    string send_status(int, int, int) override { return "not send"; }
     string type() override { return "no type"; }
     void print() override {
         object::print();
