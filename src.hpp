@@ -115,10 +115,10 @@ public:
         date ask(y, m, d);
         if (ask < send_date) return "not send";
         if (!(ask < arrive_date)) return "already arrive"; // ask >= arrive_date
-        if (len == 0) return "in station";
-        if (ask < station_time[0]) return "in station";
+        if (len == 0) return "in train";
+        if (ask < station_time[0]) return "in train";
         for (int i = 0; i < len; ++i) {
-            // ask equals a station time -> in station
+            // at a station time -> in station
             if (!(station_time[i] < ask) && !(ask < station_time[i])) return "in station";
             if (i + 1 < len) {
                 if (station_time[i] < ask && ask < station_time[i + 1]) return "in train";
